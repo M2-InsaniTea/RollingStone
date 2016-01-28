@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 
 public class BallView extends View {
 
@@ -20,7 +23,7 @@ public class BallView extends View {
     public BallView(Context context, float x, float y) {
         super(context);
         icon = BitmapFactory.decodeResource(context.getResources(),
-                R.drawable.stone_copy);
+                R.drawable.stone);
         //color hex is [transparency][red][green][blue]
         //mPaint.setColor(0xFF000000); // transparent.
         this.mX = x;
