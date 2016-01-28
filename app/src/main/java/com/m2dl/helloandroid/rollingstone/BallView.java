@@ -12,8 +12,8 @@ import android.view.animation.RotateAnimation;
 
 public class BallView extends View {
 
-    public float mX;
-    public float mY;
+    private float mX;
+    private float mY;
     //private final int mR;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -37,6 +37,22 @@ public class BallView extends View {
         super.onDraw(canvas);
         canvas.drawBitmap(icon, mX - icon.getWidth() / 2, mY - icon.getHeight() / 2, mPaint);
         //canvas.drawCircle(mX, mY, mR, mPaint);
+    }
+
+    public float getmX() {
+        return mX;
+    }
+
+    public void setmX(float mX) {
+        this.mX = mX;
+    }
+
+    public float getmY() {
+        return mY;
+    }
+
+    public void setmY(float mY) {
+        this.mY = mY;
     }
 
 

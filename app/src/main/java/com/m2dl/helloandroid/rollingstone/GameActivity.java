@@ -36,12 +36,13 @@ import java.util.TimerTask;
 
 public class GameActivity extends Activity {
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-    public static final double SENSITIVITY = 0.5;
+    public static final double SENSITIVITY = 0.2;
     private Uri imageUri;
     private ImageView imageView;
     //private ImageView stoneView;
 
     BallView mBallView = null;
+    TrailView mTrailView = null;
     Handler RedrawHandler = new Handler(); //so redraw occurs in main thread
     Timer mTmr = null;
     TimerTask mTsk = null;
@@ -82,11 +83,14 @@ public class GameActivity extends Activity {
 
         //create initial ball
         mBallView = new BallView(this, mBallPos.x, mBallPos.y);
+        mTrailView = new TrailView(this);
+        mTrailView.touch_start(mBallPos.x, mBallPos.y);
 
+        mainView.addView(mTrailView); //add trail to main screen
         mainView.addView(mBallView); //add ball to main screen
 
         mBallView.invalidate(); //call onDraw in BallView
-
+        mTrailView.invalidate();
         //listener for accelerometer, use anonymous class for simplicity
         ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(
                 new SensorEventListener() {
@@ -196,6 +200,7 @@ public class GameActivity extends Activity {
 //                android.util.Log.d(
 //                        "TiltBall","Timer Hit - " + mBallPos.x + ":" + mBallPos.y);
                 //move ball based on current speed
+                mTrailView.touch_move(mBallPos.x, mBallPos.y);
                 mBallPos.x += mBallSpd.x;
                 mBallPos.y += mBallSpd.y;
                 //if ball goes off screen, reposition to opposite side of screen
@@ -204,18 +209,20 @@ public class GameActivity extends Activity {
                 if (mBallPos.x < 0) mBallPos.x = mScrWidth;
                 if (mBallPos.y < 0) mBallPos.y = mScrHeight;
                 //update ball class instance
-                mBallView.mX = mBallPos.x;
-                mBallView.mY = mBallPos.y;
+                mBallView.setmX(mBallPos.x);
+                mBallView.setmY(mBallPos.y);
+
                 //redraw ball. Must run in background thread to prevent thread lock.
                 RedrawHandler.post(new Runnable() {
                     public void run() {
                         mBallView.invalidate();
+                        mTrailView.invalidate();
                     }
                 });
             }
         }; // TimerTask
 
-        mTmr.schedule(mTsk, 10, 10); //start timer
+        mTmr.schedule(mTsk, 5, 5); //start timer
         super.onResume();
     } // onResume
 
