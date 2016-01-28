@@ -95,15 +95,15 @@ public class GameActivity extends Activity {
                 ((SensorManager)getSystemService(Context.SENSOR_SERVICE))
                         .getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_NORMAL);
 
-        //listener for touch event
-        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
-            public boolean onTouch(android.view.View v, android.view.MotionEvent e) {
-                //set ball position based on screen touch
-                mBallPos.x = e.getX();
-                mBallPos.y = e.getY();
-                //timer event will redraw ball
-                return true;
-            }});
+//        //listener for touch event
+//        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
+//            public boolean onTouch(android.view.View v, android.view.MotionEvent e) {
+//                //set ball position based on screen touch
+//                mBallPos.x = e.getX();
+//                mBallPos.y = e.getY();
+//                //timer event will redraw ball
+//                return true;
+//            }});
     }
 
     @Override
@@ -154,24 +154,6 @@ public class GameActivity extends Activity {
         }
     }
 
-    //listener for menu button on phone
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("Exit"); //only one menu item
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    //listener for menu item clicked
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
-        if (item.getTitle() == "Exit") //user clicked Exit
-            finish(); //will call onPause
-        return super.onOptionsItemSelected(item);
-
-
-    }
-
     //For state flow see http://developer.android.com/reference/android/app/Activity.html
     @Override
     public void onPause() //app moved to background, stop background threads
@@ -191,8 +173,8 @@ public class GameActivity extends Activity {
             public void run() {
                 //if debugging with external device,
                 //  a cat log viewer will be needed on the device
-                android.util.Log.d(
-                        "TiltBall","Timer Hit - " + mBallPos.x + ":" + mBallPos.y);
+//                android.util.Log.d(
+//                        "TiltBall","Timer Hit - " + mBallPos.x + ":" + mBallPos.y);
                 //move ball based on current speed
                 mBallPos.x += mBallSpd.x;
                 mBallPos.y += mBallSpd.y;
@@ -214,14 +196,6 @@ public class GameActivity extends Activity {
         mTmr.schedule(mTsk,10,10); //start timer
         super.onResume();
     } // onResume
-
-    @Override
-    public void onDestroy() //main thread stopped
-    {
-        super.onDestroy();
-        System.runFinalizersOnExit(true); //wait for threads to exit before clearing app
-        android.os.Process.killProcess(android.os.Process.myPid());  //remove app from memory
-    }
 
     //listener for config change.
     //This is called when user tilts phone enough to trigger landscape view
