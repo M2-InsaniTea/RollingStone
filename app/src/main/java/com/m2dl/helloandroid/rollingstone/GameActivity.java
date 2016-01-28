@@ -226,4 +226,8 @@ public class GameActivity extends Activity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
+
+    public void callbackEndGame() {
+
+    }
 }
