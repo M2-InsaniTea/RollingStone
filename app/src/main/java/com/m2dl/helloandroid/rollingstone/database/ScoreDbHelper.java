@@ -17,9 +17,8 @@ public class ScoreDbHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + Score.ScoreEntry.TABLE_NAME + " (" +
                     Score.ScoreEntry._ID + " INTEGER PRIMARY KEY," +
-                    Score.ScoreEntry.COLUMN_NAME_ENTRY_ID + INT_TYPE + COMMA_SEP +
                     Score.ScoreEntry.COLUMN_NAME_USERNAME + TEXT_TYPE + COMMA_SEP +
-                    Score.ScoreEntry.COLUMN_NAME_SCORE_VALUE + INT_TYPE + COMMA_SEP +
+                    Score.ScoreEntry.COLUMN_NAME_SCORE_VALUE + INT_TYPE +
                     " )";
 
     private static final String SQL_DELETE_ENTRIES =
