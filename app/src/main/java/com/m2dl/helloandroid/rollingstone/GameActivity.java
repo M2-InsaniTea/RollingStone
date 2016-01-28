@@ -16,11 +16,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v4.view.MotionEventCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -48,6 +50,7 @@ public class GameActivity extends Activity {
     TimerTask mTsk = null;
     int mScrWidth, mScrHeight;
     android.graphics.PointF mBallPos, mBallSpd;
+    private boolean cheat_activated = false;
     boolean gameStarted;
 
     @Override
@@ -119,15 +122,24 @@ public class GameActivity extends Activity {
                 ((SensorManager) getSystemService(Context.SENSOR_SERVICE))
                         .getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_NORMAL);
 
-//        //listener for touch event
-//        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
-//            public boolean onTouch(android.view.View v, android.view.MotionEvent e) {
-//                //set ball position based on screen touch
-//                mBallPos.x = e.getX();
-//                mBallPos.y = e.getY();
-//                //timer event will redraw ball
-//                return true;
-//            }});
+        //listener for touch event
+        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
+            public boolean onTouch(android.view.View v, android.view.MotionEvent e) {
+
+                //set ball position based on screen touch
+                if (e.getAction() == MotionEvent.ACTION_MOVE && cheat_activated) {
+                    mBallPos.y = e.getY();
+                    mBallPos.x = e.getX();
+                }
+
+                if (e.getAction() == MotionEvent.ACTION_POINTER_UP && e.getPointerCount() == 2) {
+                    cheat_activated = !cheat_activated;
+                    Toast.makeText(GameActivity.this, cheat_activated ? "CHEAT ON (petit coquin)" : "CHEAT OFF", Toast.LENGTH_SHORT).show();
+                }
+
+                //timer event will redraw ball
+                return true;
+            }});
     }
 
     @Override
