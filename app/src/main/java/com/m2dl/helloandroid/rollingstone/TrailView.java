@@ -70,7 +70,7 @@ public class TrailView extends View {
         float dx = Math.abs(x - mX);
         float dy = Math.abs(y - mY);
         if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
-            if (mBitmap.getPixel((int) x, (int) y) != 0) {
+            if (mBitmap != null && mBitmap.getPixel((int) Math.abs(x), (int)  Math.abs(y)) != 0) {
                 gameActivity.callbackEndGame();
             }
 
@@ -78,10 +78,12 @@ public class TrailView extends View {
             mX = x;
             mY = y;
 
-            mCanvas.drawPath(mPath, mPaint);
-            // kill this so we don't double draw
-            mPath.reset();
-            mPath.moveTo(x, y);
+            if (mCanvas != null) {
+                mCanvas.drawPath(mPath, mPaint);
+                // kill this so we don't double draw
+                mPath.reset();
+                mPath.moveTo(x, y);
+            }
         }
     }
 

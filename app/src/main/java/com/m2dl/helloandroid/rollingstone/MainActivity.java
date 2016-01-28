@@ -28,12 +28,9 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         settings = getSharedPreferences(PREFS_NAME, 0);
         EditText text = (EditText) findViewById(R.id.username);
-        String content = settings.getString("username","Choose a username");
-        if(content.equals("Choose a username")) {
-            text.setHint(content);
-        } else {
-            text.setText(content);
-        }
+        String content = settings.getString("username","");
+        text.setHint("Choose a username");
+        text.setText(content);
 
     }
 

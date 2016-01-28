@@ -3,11 +3,13 @@ package com.m2dl.helloandroid.rollingstone;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -36,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.Toast;
 
+import com.m2dl.helloandroid.rollingstone.database.ScoreDbHelper;
 import com.m2dl.helloandroid.rollingstone.model.Score;
 
 import java.io.File;
@@ -43,12 +46,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class GameActivity extends Activity {
+    private long score = 0;
     public static final String PREFS_NAME = "StonePrefs";
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     public static final double SENSITIVITY = 0.2;
     private Uri imageUri;
     private ImageView imageView;
-    private GameActivity activity;
     //private ImageView stoneView;
 
     BallView mBallView = null;
@@ -111,15 +114,22 @@ public class GameActivity extends Activity {
                     public void onSensorChanged(SensorEvent event) {
                         //set ball speed based on phone tilt (ignore Z axis)
                         if (gameStarted) {
+                            boolean moved = false;
                             if (Math.abs(event.values[0]) > SENSITIVITY) {
                                 mBallSpd.x = -event.values[0];
+                                moved = true;
                             } else {
                                 mBallSpd.x = 0;
                             }
                             if (Math.abs(event.values[1]) > SENSITIVITY) {
                                 mBallSpd.y = event.values[1];
+                                moved = true;
                             } else {
                                 mBallSpd.y = 0;
+                            }
+
+                            if (moved) {
+                                score++;
                             }
                         }
                         //timer event will redraw ball
@@ -131,8 +141,6 @@ public class GameActivity extends Activity {
                 },
                 ((SensorManager) getSystemService(Context.SENSOR_SERVICE))
                         .getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_NORMAL);
-
-        activity = this;
 
 //        //listener for touch event
 //        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
@@ -161,7 +169,8 @@ public class GameActivity extends Activity {
 
                 //timer event will redraw ball
                 return true;
-            }});
+            }
+        });
     }
 
     @Override
@@ -216,9 +225,11 @@ public class GameActivity extends Activity {
     @Override
     public void onPause() //app moved to background, stop background threads
     {
-        mTmr.cancel(); //kill\release timer (our only background thread)
-        mTmr = null;
-        mTsk = null;
+        if (mTmr != null) {
+            mTmr.cancel(); //kill\release timer (our only background thread)
+            mTmr = null;
+            mTsk = null;
+        }
         super.onPause();
     }
 
@@ -239,7 +250,6 @@ public class GameActivity extends Activity {
                 mBallPos.y += mBallSpd.y;
                 //if ball goes off screen, reposition to opposite side of screen
                 if (mBallPos.x > mScrWidth || mBallPos.y > mScrHeight || mBallPos.x < 0 || mBallPos.y < 0) {
-                    endGame = true;
                     callbackEndGame();
                 }
                 //update ball class instance
@@ -271,36 +281,46 @@ public class GameActivity extends Activity {
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        if(endGame) {
-            callbackEndGame();
-        }
     }
 
     public void callbackEndGame() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor editor  = settings.edit();
-        settings.edit().putLong("Score",100);
-        editor.commit();
+        ScoreDbHelper mDbHelper = new ScoreDbHelper(this);
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(Score.ScoreEntry.COLUMN_NAME_USERNAME, settings.getString("username",""));
+        values.put(Score.ScoreEntry.COLUMN_NAME_SCORE_VALUE, score);
+
+        long newRowId;
+        newRowId = db.insert(
+                Score.ScoreEntry.TABLE_NAME,
+                null,
+                values);
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                new AlertDialog.Builder(activity)
+                new AlertDialog.Builder(GameActivity.this)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle("Game over")
-                        .setMessage("you score is 100. would you like to retry?")
-                        .setPositiveButton("Yeah", new DialogInterface.OnClickListener() {
+                        .setMessage("Wow, you're score was : " + score)
+                        .setPositiveButton("Go back home", new DialogInterface.OnClickListener() {
 
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                finish();
+                                Intent intent = new Intent(GameActivity.this, MainActivity.class);
+                                startActivity(intent);
                             }
 
                         })
-                        .setNegativeButton("Nope", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("Learderboard", new DialogInterface.OnClickListener() {
 
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                recreate();
+
+                                Intent intent = new Intent(GameActivity.this, LeaderBoardActivity.class);
+                                startActivity(intent);
                             }
 
                         })
