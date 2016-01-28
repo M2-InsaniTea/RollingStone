@@ -19,11 +19,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v4.view.MotionEventCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -43,18 +45,20 @@ import java.util.TimerTask;
 public class GameActivity extends Activity {
     public static final String PREFS_NAME = "StonePrefs";
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-    public static final double SENSITIVITY = 0.5;
+    public static final double SENSITIVITY = 0.2;
     private Uri imageUri;
     private ImageView imageView;
     private GameActivity activity;
     //private ImageView stoneView;
 
     BallView mBallView = null;
+    TrailView mTrailView = null;
     Handler RedrawHandler = new Handler(); //so redraw occurs in main thread
     Timer mTmr = null;
     TimerTask mTsk = null;
     int mScrWidth, mScrHeight;
     android.graphics.PointF mBallPos, mBallSpd;
+    private boolean cheat_activated = false;
     boolean gameStarted;
     boolean endGame;
 
@@ -92,11 +96,14 @@ public class GameActivity extends Activity {
         endGame = false;
         //create initial ball
         mBallView = new BallView(this, mBallPos.x, mBallPos.y);
+        mTrailView = new TrailView(this);
+        mTrailView.touch_start(mBallPos.x, mBallPos.y);
 
+        mainView.addView(mTrailView); //add trail to main screen
         mainView.addView(mBallView); //add ball to main screen
 
         mBallView.invalidate(); //call onDraw in BallView
-
+        mTrailView.invalidate();
         //listener for accelerometer, use anonymous class for simplicity
         ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(
                 new SensorEventListener() {
@@ -136,6 +143,25 @@ public class GameActivity extends Activity {
 //                //timer event will redraw ball
 //                return true;
 //            }});
+
+        //listener for touch event
+        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
+            public boolean onTouch(android.view.View v, android.view.MotionEvent e) {
+
+                //set ball position based on screen touch
+                if (e.getAction() == MotionEvent.ACTION_MOVE && cheat_activated) {
+                    mBallPos.y = e.getY();
+                    mBallPos.x = e.getX();
+                }
+
+                if (e.getAction() == MotionEvent.ACTION_POINTER_UP && e.getPointerCount() == 2) {
+                    cheat_activated = !cheat_activated;
+                    Toast.makeText(GameActivity.this, cheat_activated ? "CHEAT ON (petit coquin)" : "CHEAT OFF", Toast.LENGTH_SHORT).show();
+                }
+
+                //timer event will redraw ball
+                return true;
+            }});
     }
 
     @Override
@@ -208,6 +234,7 @@ public class GameActivity extends Activity {
 //                android.util.Log.d(
 //                        "TiltBall","Timer Hit - " + mBallPos.x + ":" + mBallPos.y);
                 //move ball based on current speed
+                mTrailView.touch_move(mBallPos.x, mBallPos.y);
                 mBallPos.x += mBallSpd.x;
                 mBallPos.y += mBallSpd.y;
                 //if ball goes off screen, reposition to opposite side of screen
@@ -216,18 +243,20 @@ public class GameActivity extends Activity {
                     callbackEndGame();
                 }
                 //update ball class instance
-                mBallView.mX = mBallPos.x;
-                mBallView.mY = mBallPos.y;
+                mBallView.setmX(mBallPos.x);
+                mBallView.setmY(mBallPos.y);
+
                 //redraw ball. Must run in background thread to prevent thread lock.
                 RedrawHandler.post(new Runnable() {
                     public void run() {
                         mBallView.invalidate();
+                        mTrailView.invalidate();
                     }
                 });
             }
         }; // TimerTask
 
-        mTmr.schedule(mTsk, 10, 10); //start timer
+        mTmr.schedule(mTsk, 5, 5); //start timer
         super.onResume();
     } // onResume
 
