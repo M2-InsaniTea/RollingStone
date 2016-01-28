@@ -13,7 +13,7 @@ import android.widget.EditText;
 
 public class MainActivity extends Activity {
     public static final String PREFS_NAME = "StonePrefs";
-    private SharedPreferences settings;
+    private static SharedPreferences settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +59,8 @@ public class MainActivity extends Activity {
                     .show();
         } else {
             SharedPreferences.Editor editor = settings.edit();
-            settings.edit().putString("username", content);
-            editor.commit();
+            editor.putString("username", content);
+            editor.apply();
             Intent intent = new Intent(this, GameActivity.class);
             startActivity(intent);
         }
@@ -71,4 +71,21 @@ public class MainActivity extends Activity {
             startActivity(intent);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        EditText text = (EditText) findViewById(R.id.username);
+        String content = settings.getString("username","");
+        text.setHint("Choose a username");
+        text.setText(content);
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        EditText text = (EditText) findViewById(R.id.username);
+        String content = settings.getString("username","");
+        text.setHint("Choose a username");
+        text.setText(content);
+    }
 }

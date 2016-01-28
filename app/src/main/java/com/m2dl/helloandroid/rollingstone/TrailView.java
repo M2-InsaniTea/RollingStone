@@ -70,9 +70,6 @@ public class TrailView extends View {
         float dx = Math.abs(x - mX);
         float dy = Math.abs(y - mY);
         if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
-            if (mBitmap != null && mBitmap.getPixel((int) Math.abs(x), (int)  Math.abs(y)) != 0) {
-                gameActivity.callbackEndGame();
-            }
 
             mPath.quadTo(mX, mY, (x + mX) / 2, (y + mY) / 2);
             mX = x;

@@ -251,6 +251,8 @@ public class GameActivity extends Activity {
                 //if ball goes off screen, reposition to opposite side of screen
                 if (mBallPos.x > mScrWidth || mBallPos.y > mScrHeight || mBallPos.x < 0 || mBallPos.y < 0) {
                     callbackEndGame();
+                    mTmr.cancel();
+                    return;
                 }
                 //update ball class instance
                 mBallView.setmX(mBallPos.x);
@@ -297,6 +299,7 @@ public class GameActivity extends Activity {
                 Score.ScoreEntry.TABLE_NAME,
                 null,
                 values);
+        db.close();
 
         runOnUiThread(new Runnable() {
             @Override
@@ -309,18 +312,16 @@ public class GameActivity extends Activity {
 
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Intent intent = new Intent(GameActivity.this, MainActivity.class);
-                                startActivity(intent);
+                                GameActivity.this.finish();
                             }
 
                         })
-                        .setNegativeButton("Learderboard", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("retry", new DialogInterface.OnClickListener() {
 
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                Intent intent = new Intent(GameActivity.this, LeaderBoardActivity.class);
-                                startActivity(intent);
+                                GameActivity.this.recreate();
                             }
 
                         })
