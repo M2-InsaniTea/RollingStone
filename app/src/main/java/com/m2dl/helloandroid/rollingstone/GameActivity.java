@@ -22,7 +22,6 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -47,10 +46,15 @@ public class GameActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_NO_TITLE); //hide title bar
-        getWindow().setFlags(0xFFFFFFFF,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN| WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT < 16) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        } else {
+            hideSystemUI();
+        }
+
         setContentView(R.layout.activity_game);
         imageView = (ImageView) findViewById(R.id.imageView);
 //        stoneView = (ImageView) findViewById(R.id.stone);
@@ -58,8 +62,6 @@ public class GameActivity extends Activity {
         final FrameLayout mainView = (android.widget.FrameLayout) findViewById(R.id.tiltball_view);
 
         //get screen dimensions
-        Display display = getWindowManager().getDefaultDisplay();
-
         DisplayMetrics displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         mScrWidth = displayMetrics.widthPixels;
@@ -74,9 +76,10 @@ public class GameActivity extends Activity {
         mBallSpd.y = 0;
 
         //create initial ball
-        mBallView = new BallView(this,mBallPos.x,mBallPos.y,5);
+        mBallView = new BallView(this,mBallPos.x,mBallPos.y);
 
         mainView.addView(mBallView); //add ball to main screen
+
         mBallView.invalidate(); //call onDraw in BallView
 
         //listener for accelerometer, use anonymous class for simplicity
