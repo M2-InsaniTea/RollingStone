@@ -52,7 +52,7 @@ public class TiltBallActivity extends Activity {
         mBallSpd.y = 0; 
         
         //create initial ball
-        mBallView = new BallView(this,mBallPos.x,mBallPos.y,5);
+        mBallView = new BallView(this,mBallPos.x,mBallPos.y);
                 
         mainView.addView(mBallView); //add ball to main screen
         mBallView.invalidate(); //call onDraw in BallView
