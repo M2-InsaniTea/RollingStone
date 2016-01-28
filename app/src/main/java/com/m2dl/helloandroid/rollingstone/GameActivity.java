@@ -1,9 +1,12 @@
 package com.m2dl.helloandroid.rollingstone;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.hardware.Sensor;
@@ -28,17 +31,22 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TableLayout;
 import android.widget.Toast;
+
+import com.m2dl.helloandroid.rollingstone.model.Score;
 
 import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class GameActivity extends Activity {
+    public static final String PREFS_NAME = "StonePrefs";
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     public static final double SENSITIVITY = 0.5;
     private Uri imageUri;
     private ImageView imageView;
+    private GameActivity activity;
     //private ImageView stoneView;
 
     BallView mBallView = null;
@@ -48,6 +56,7 @@ public class GameActivity extends Activity {
     int mScrWidth, mScrHeight;
     android.graphics.PointF mBallPos, mBallSpd;
     boolean gameStarted;
+    boolean endGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +89,7 @@ public class GameActivity extends Activity {
         mBallSpd.x = 0;
         mBallSpd.y = 0;
 
+        endGame = false;
         //create initial ball
         mBallView = new BallView(this, mBallPos.x, mBallPos.y);
 
@@ -114,6 +124,8 @@ public class GameActivity extends Activity {
                 },
                 ((SensorManager) getSystemService(Context.SENSOR_SERVICE))
                         .getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_NORMAL);
+
+        activity = this;
 
 //        //listener for touch event
 //        mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
@@ -199,10 +211,10 @@ public class GameActivity extends Activity {
                 mBallPos.x += mBallSpd.x;
                 mBallPos.y += mBallSpd.y;
                 //if ball goes off screen, reposition to opposite side of screen
-                if (mBallPos.x > mScrWidth) mBallPos.x = 0;
-                if (mBallPos.y > mScrHeight) mBallPos.y = 0;
-                if (mBallPos.x < 0) mBallPos.x = mScrWidth;
-                if (mBallPos.y < 0) mBallPos.y = mScrHeight;
+                if (mBallPos.x > mScrWidth || mBallPos.y > mScrHeight || mBallPos.x < 0 || mBallPos.y < 0) {
+                    endGame = true;
+                    callbackEndGame();
+                }
                 //update ball class instance
                 mBallView.mX = mBallPos.x;
                 mBallView.mY = mBallPos.y;
@@ -227,7 +239,44 @@ public class GameActivity extends Activity {
         super.onConfigurationChanged(newConfig);
     }
 
-    public void callbackEndGame() {
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if(endGame) {
+            callbackEndGame();
+        }
+    }
 
+    public void callbackEndGame() {
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor  = settings.edit();
+        settings.edit().putLong("Score",100);
+        editor.commit();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new AlertDialog.Builder(activity)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Game over")
+                        .setMessage("you score is 100. would you like to retry?")
+                        .setPositiveButton("Yeah", new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                finish();
+                            }
+
+                        })
+                        .setNegativeButton("Nope", new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                recreate();
+                            }
+
+                        })
+                        .show();
+            }
+        });
     }
 }
