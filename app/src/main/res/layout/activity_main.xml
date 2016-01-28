@@ -29,19 +29,23 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp">
 
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Start Challenge"
+                android:text="Challenge"
                 android:id="@+id/start"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:onClick="startGame"/>
 
             <Button
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Leader Board"
+                android:text="LeaderBoard"
                 android:id="@+id/leaderBoard"
                 android:layout_gravity="center_horizontal" />
         </LinearLayout>
