@@ -34,4 +34,9 @@ public class MainActivity extends Activity {
         startActivity(intent);
     }
 
+    public void startLeaderboard(View view) {
+        Intent intent = new Intent(this,LeaderBoardActivity.class);
+        startActivity(intent);
+    }
+
 }
