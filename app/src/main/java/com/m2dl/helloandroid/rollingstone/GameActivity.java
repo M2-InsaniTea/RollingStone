@@ -23,6 +23,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -33,6 +36,7 @@ import java.util.TimerTask;
 
 public class GameActivity extends Activity {
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    public static final double SENSITIVITY = 0.5;
     private Uri imageUri;
     private ImageView imageView;
     //private ImageView stoneView;
@@ -43,6 +47,7 @@ public class GameActivity extends Activity {
     TimerTask mTsk = null;
     int mScrWidth, mScrHeight;
     android.graphics.PointF mBallPos, mBallSpd;
+    boolean gameStarted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,32 +75,44 @@ public class GameActivity extends Activity {
         mBallSpd = new android.graphics.PointF();
 
         //create variables for ball position and speed
-        mBallPos.x = mScrWidth/2;
-        mBallPos.y = mScrHeight/2;
+        mBallPos.x = mScrWidth / 2;
+        mBallPos.y = mScrHeight / 2;
         mBallSpd.x = 0;
         mBallSpd.y = 0;
 
         //create initial ball
-        mBallView = new BallView(this,mBallPos.x,mBallPos.y);
+        mBallView = new BallView(this, mBallPos.x, mBallPos.y);
 
         mainView.addView(mBallView); //add ball to main screen
 
         mBallView.invalidate(); //call onDraw in BallView
 
         //listener for accelerometer, use anonymous class for simplicity
-        ((SensorManager)getSystemService(Context.SENSOR_SERVICE)).registerListener(
+        ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(
                 new SensorEventListener() {
                     @Override
                     public void onSensorChanged(SensorEvent event) {
                         //set ball speed based on phone tilt (ignore Z axis)
-                        mBallSpd.x = -event.values[0];
-                        mBallSpd.y = event.values[1];
+                        if (gameStarted) {
+                            if (Math.abs(event.values[0]) > SENSITIVITY) {
+                                mBallSpd.x = -event.values[0];
+                            } else {
+                                mBallSpd.x = 0;
+                            }
+                            if (Math.abs(event.values[1]) > SENSITIVITY) {
+                                mBallSpd.y = event.values[1];
+                            } else {
+                                mBallSpd.y = 0;
+                            }
+                        }
                         //timer event will redraw ball
                     }
+
                     @Override
-                    public void onAccuracyChanged(Sensor sensor, int accuracy) {} //ignore this event
+                    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                    } //ignore this event
                 },
-                ((SensorManager)getSystemService(Context.SENSOR_SERVICE))
+                ((SensorManager) getSystemService(Context.SENSOR_SERVICE))
                         .getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_NORMAL);
 
 //        //listener for touch event
@@ -123,9 +140,8 @@ public class GameActivity extends Activity {
     }
 
     public void takePhoto() {
-
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
+        File photo = new File(Environment.getExternalStorageDirectory(), "Pic.jpg");
         imageUri = Uri.fromFile(photo);
 
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
@@ -147,6 +163,7 @@ public class GameActivity extends Activity {
                                 .getBitmap(cr, selectedImage);
 
                         imageView.setImageBitmap(bitmap);
+                        gameStarted = true;
                         //stoneView.setVisibility(View.VISIBLE);
                     } catch (Exception e) {
                         Toast.makeText(this, "Failed to load", Toast.LENGTH_SHORT)
@@ -182,10 +199,10 @@ public class GameActivity extends Activity {
                 mBallPos.x += mBallSpd.x;
                 mBallPos.y += mBallSpd.y;
                 //if ball goes off screen, reposition to opposite side of screen
-                if (mBallPos.x > mScrWidth) mBallPos.x=0;
-                if (mBallPos.y > mScrHeight) mBallPos.y=0;
-                if (mBallPos.x < 0) mBallPos.x=mScrWidth;
-                if (mBallPos.y < 0) mBallPos.y=mScrHeight;
+                if (mBallPos.x > mScrWidth) mBallPos.x = 0;
+                if (mBallPos.y > mScrHeight) mBallPos.y = 0;
+                if (mBallPos.x < 0) mBallPos.x = mScrWidth;
+                if (mBallPos.y < 0) mBallPos.y = mScrHeight;
                 //update ball class instance
                 mBallView.mX = mBallPos.x;
                 mBallView.mY = mBallPos.y;
@@ -193,10 +210,12 @@ public class GameActivity extends Activity {
                 RedrawHandler.post(new Runnable() {
                     public void run() {
                         mBallView.invalidate();
-                    }});
-            }}; // TimerTask
+                    }
+                });
+            }
+        }; // TimerTask
 
-        mTmr.schedule(mTsk,10,10); //start timer
+        mTmr.schedule(mTsk, 10, 10); //start timer
         super.onResume();
     } // onResume
 
@@ -204,8 +223,7 @@ public class GameActivity extends Activity {
     //This is called when user tilts phone enough to trigger landscape view
     //we want our app to stay in portrait view, so bypass event
     @Override
-    public void onConfigurationChanged(Configuration newConfig)
-    {
+    public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 }
