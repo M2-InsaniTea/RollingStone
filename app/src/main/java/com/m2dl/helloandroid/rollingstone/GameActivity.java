@@ -251,7 +251,6 @@ public class GameActivity extends Activity {
                 //if ball goes off screen, reposition to opposite side of screen
                 if (mBallPos.x > mScrWidth || mBallPos.y > mScrHeight || mBallPos.x < 0 || mBallPos.y < 0) {
                     callbackEndGame();
-                    mTmr.cancel();
                     return;
                 }
                 //update ball class instance
@@ -286,6 +285,7 @@ public class GameActivity extends Activity {
     }
 
     public void callbackEndGame() {
+        mTmr.cancel();
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         ScoreDbHelper mDbHelper = new ScoreDbHelper(this);
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
